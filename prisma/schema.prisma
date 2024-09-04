@@ -1,0 +1,60 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AccountState {
+  Active
+  Expired
+  Banned
+  Administrator
+}
+
+model Account {
+  id                String @id @default(uuid())
+  screen_name_lower String @unique
+  screen_name       String
+
+  token String? @unique
+
+  account_state AccountState @default(Active)
+  created_at    DateTime     @default(now())
+  expires_at    DateTime?    @default(dbgenerated("NOW() + INTERVAL '1 DAY'"))
+
+  posts Post[]
+
+  @@map("accounts")
+}
+
+model Post {
+  id           String   @id @default(uuid())
+  text_content String
+  posted_at    DateTime @default(now())
+
+  room      Room   @relation(fields: [room_slug], references: [slug], onDelete: Cascade)
+  room_slug String
+
+  author    Account @relation(fields: [author_id], references: [id], onDelete: Cascade)
+  author_id String
+
+  @@map("posts")
+}
+
+model Room {
+  slug        String @id
+  description String
+
+  posts Post[]
+
+  @@map("rooms")
+}
