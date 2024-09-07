@@ -1,8 +1,9 @@
 import { headers } from "next/headers";
+import { cache } from "react";
 
 const FALLBACK_IP_ADDRESS = "0.0.0.0";
 
-export async function getUserIp(): Promise<string> {
+export const getUserIp = cache(async function getUserIp(): Promise<string> {
 	"use server";
 
 	return (
@@ -10,4 +11,4 @@ export async function getUserIp(): Promise<string> {
 		headers().get("x-real-ip") ??
 		FALLBACK_IP_ADDRESS
 	);
-}
+});
