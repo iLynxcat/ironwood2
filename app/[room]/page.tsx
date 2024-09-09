@@ -17,6 +17,7 @@ import {
 } from "~/utils/zod-issue-search-params";
 import { guardWithAuthentication } from "../../auth/auth-guard";
 import { PostRequest } from "./post";
+import { transformRoomPostContent } from "~/ai/llama3";
 
 interface RoomPageProps {
 	params: { room: string };
@@ -103,9 +104,13 @@ export default async function RoomPage({
 			return redirect(`?${errorQuery}`);
 		}
 
+		let content = data.content;
+		if (`${roomSlug}`.toLowerCase() === "irl")
+			content = await transformRoomPostContent(roomSlug as "irl", content);
+
 		await database.post.create({
 			data: {
-				text_content: data.content,
+				text_content: content,
 				author: {
 					connect: {
 						id: account.id,
